@@ -241,12 +241,12 @@ bool LoadFromPC()
 {    
     const uint32_t startTimeout = 1000; 
     //const uint32_t startTimeout = 1000000; 
-    Serial1.begin(115200);
+    Serial1.begin(9600);
     while (!Serial1) {
         ; // wait for serial port to connect. Needed for native USB port only
     }
     digitalWrite(pinUART, HIGH);  
-    Serial1.write("Hello UART!");
+    //Serial1.print("Hello UART!");
     digitalWrite(pinUART, LOW);  
     uint32_t timeout = startTimeout; 
     ProgrammElem programmExternalBackup[4];
@@ -276,7 +276,7 @@ bool LoadFromPC()
             return false;
         }
         uint8_t lastByte = 0; 
-        if (Serial1.available()) 
+        if (Serial1.available() > 0) 
         {
             lastByte = *pointerBuffer++ = Serial1.read();
             receivedBytes++;
