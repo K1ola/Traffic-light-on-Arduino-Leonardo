@@ -240,13 +240,9 @@ void RedrawScreen()
 bool LoadFromPC()
 {    
     const uint32_t startTimeout = 1000; 
-    //const uint32_t startTimeout = 1000000; 
+    // one line for traffic - 0A 00 00 00 01 00 00 04 01 00 00 00 00 03       
     Serial1.begin(9600);
-    Serial.begin(9600);
-    while (!Serial1);
-    digitalWrite(pinUART, HIGH);  
-    Serial.println("Hello UART!");
-    digitalWrite(pinUART, LOW);  
+    while (!Serial1); 
     uint32_t timeout = startTimeout; 
     ProgrammElem programmExternalBackup[4];
     memcpy(programmExternalBackup, programmExternal, sizeof(programmExternal));
@@ -286,8 +282,8 @@ bool LoadFromPC()
             receivedBytes++;
             timeout = startTimeout;
             
-            sprintf(strLastByte, "Last received: %d", lastByte);
-            sprintf(strBytesCount, "All received: %d", receivedBytes);
+            sprintf(strLastByte, "Last byte: %d", lastByte);
+            sprintf(strBytesCount, "All bytes: %d", receivedBytes);
         }
 
         sprintf(strTimer, "Timer: %u", timeout);
@@ -374,7 +370,9 @@ void setup(void)
     digitalWrite(pinBacklight, HIGH);
     pinMode(pinBuzzer, OUTPUT);
     pinMode(pinUART,   OUTPUT);
-    digitalWrite(pinUART, LOW);  
+    digitalWrite(pinUART, LOW); 
+    //for debug output
+    Serial.begin(9600); 
     u8g.setRot180();
     u8g.setColorIndex(1);
     u8g.setContrast(0);
