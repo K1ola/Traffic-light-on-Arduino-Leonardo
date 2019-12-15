@@ -242,17 +242,17 @@ bool LoadFromPC()
     const uint32_t startTimeout = 1000; 
     //const uint32_t startTimeout = 1000000; 
     Serial1.begin(9600);
-    while (!Serial1) {
-        ; // wait for serial port to connect. Needed for native USB port only
-    }
-    digitalWrite(pinUART, HIGH);  
-    //Serial1.print("Hello UART!");
-    digitalWrite(pinUART, LOW);  
+    while (!Serial1);
     uint32_t timeout = startTimeout; 
     ProgrammElem programmExternalBackup[4];
     memcpy(programmExternalBackup, programmExternal, sizeof(programmExternal));
     uint8_t* pointerBuffer = (uint8_t*)programmExternal; 
     uint8_t receivedBytes = 0;
+    char strTimer[24] = {0};
+    char strLastByte[24] = {0};
+    char strBytesCount[24] = {0};
+    sprintf(strLastByte, "Last received: 0");
+    sprintf(strBytesCount, "All received: 0");
     while (receivedBytes < sizeof(programmExternal))
     {
         if (--timeout == 0) 
@@ -281,13 +281,12 @@ bool LoadFromPC()
             lastByte = *pointerBuffer++ = Serial1.read();
             receivedBytes++;
             timeout = startTimeout;
+            
+            sprintf(strLastByte, "Last received: %d", lastByte);
+            sprintf(strBytesCount, "All received: %d", receivedBytes);
         }
-        char strTimer[24] = {0};
-        char strLastByte[24];
-        char strBytesCount[24];
+
         sprintf(strTimer, "Timer: %u", timeout);
-        sprintf(strLastByte, "Last received byte: %d", lastByte);
-        sprintf(strBytesCount, "All received bytes: %d", receivedBytes);
         u8g.firstPage();  
         do 
         {               
