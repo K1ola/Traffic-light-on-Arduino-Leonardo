@@ -229,6 +229,56 @@ void RedrawScreen()
     while (u8g.nextPage());
 }
 
+void DrawMenu()
+{
+    const char* menuItems[] = 
+    {
+        "Default programm",
+        "External programm",
+        "Load from PC",
+        "Exit",
+    };
+
+    uint8_t selectedItem = 0;
+    
+    while (1) 
+    {
+        u8g.firstPage();  
+        do 
+        {
+            uint8_t y = 0;
+            uint8_t i;
+            const uint8_t stepY = 16;
+            for (i=0; i<4; i++)
+            {
+                if (i == selectedItem) u8g.drawFrame(0,y,128,stepY);
+                u8g.drawStr(4, y+4, menuItems[i]);
+                y+=stepY;
+            }
+        } 
+        while (u8g.nextPage());
+
+        switch (GetJoystick()) 
+        {
+            case joyUp:
+                if (selectedItem > 0) selectedItem--;
+                break;
+            case joyDown:
+                if (selectedItem < 3) selectedItem++;
+                break;
+            case joyEnter:
+                switch (selectedItem) 
+                {
+                    case 0:
+                    case 1:
+                    case 2:
+                    case 3:
+                        return;
+                }
+        }
+    }    
+}
+
 void setup(void) 
 {
     pinMode(pinBacklight, OUTPUT);
@@ -265,11 +315,14 @@ void loop(void)
     while (true)
     {
         if (GetJoystick() == joyEnter)
-        { 
-            backlight = !backlight; 
-            digitalWrite(pinBacklight, backlight);
+        {       
+            // load programm with enabled interrupts ( with traffics on the screen )     
+            noInterrupts();
+            DrawMenu();
+            interrupts();
+            //backlight = !backlight; 
+            //digitalWrite(pinBacklight, backlight);
         }
-        //RedrawScreen();
     }
 
   
