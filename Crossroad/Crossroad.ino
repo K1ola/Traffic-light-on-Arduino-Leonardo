@@ -10,7 +10,7 @@ U8GLIB_NHD_C12864 u8g(13, 11, 10, 9, 8);	// SPI Com: SCK = 13, MOSI = 11, CS = 1
 const int pinJoystick = 0;
 const int pinBacklight = 7;
 const int pinBuzzer = 3;
-const int pinUART = 2;
+const int pinUART = 4;
 
 uint32_t sysTime = 0;
 
@@ -242,7 +242,11 @@ bool LoadFromPC()
     const uint32_t startTimeout = 1000; 
     //const uint32_t startTimeout = 1000000; 
     Serial1.begin(9600);
+    Serial.begin(9600);
     while (!Serial1);
+    digitalWrite(pinUART, HIGH);  
+    Serial.println("Hello UART!");
+    digitalWrite(pinUART, LOW);  
     uint32_t timeout = startTimeout; 
     ProgrammElem programmExternalBackup[4];
     memcpy(programmExternalBackup, programmExternal, sizeof(programmExternal));
