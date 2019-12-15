@@ -2,6 +2,7 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
+#define DEBUG
 #define countof(a) ( sizeof(a)/sizeof(a[0]) ) 
 
 U8GLIB_NHD_C12864 u8g(13, 11, 10, 9, 8);	// SPI Com: SCK = 13, MOSI = 11, CS = 10, A0 = 9, RST = 8
@@ -9,6 +10,7 @@ U8GLIB_NHD_C12864 u8g(13, 11, 10, 9, 8);	// SPI Com: SCK = 13, MOSI = 11, CS = 1
 const int pinJoystick = 0;
 const int pinBacklight = 7;
 const int pinBuzzer = 3;
+const int pinUART = 2;
 
 uint32_t sysTime = 0;
 
@@ -34,7 +36,7 @@ struct ProgrammElem
     TrafficLightState major, minor;
 };
 
-const ProgrammElem programm1[] = 
+const ProgrammElem programmDefault[] = 
 {
     {90, {{0,0,1,0,0}, 4}, {{1,0,0,0,0}, 3}},
     
@@ -44,6 +46,8 @@ const ProgrammElem programm1[] =
         
     {90+30+30+15, {{1,0,0,0,0}, 4}, {{1,0,0,0,0}, 3}}
 };
+
+ProgrammElem programmExternal[4] = {0};
 
 const ProgrammElem programmDebug[] = 
 {
@@ -56,7 +60,11 @@ const ProgrammElem programmDebug[] =
     {20+20+15+10, {{1,0,0,0,0}, 4}, {{1,0,0,0,0}, 3}}
 };
 
+#ifdef DEBUG
 const ProgrammElem *currentProgramm = programmDebug;
+#else
+const ProgrammElem *currentProgramm = programmDefault;
+#endif
 int currentProgrammSize = countof(programmDebug);
 
 Joystick GetJoystick()
@@ -229,6 +237,70 @@ void RedrawScreen()
     while (u8g.nextPage());
 }
 
+bool LoadFromPC()
+{    
+    const uint32_t startTimeout = 1000; 
+    //const uint32_t startTimeout = 1000000; 
+    Serial1.begin(115200);
+    while (!Serial1) {
+        ; // wait for serial port to connect. Needed for native USB port only
+    }
+    digitalWrite(pinUART, HIGH);  
+    Serial1.write("Hello UART!");
+    digitalWrite(pinUART, LOW);  
+    uint32_t timeout = startTimeout; 
+    ProgrammElem programmExternalBackup[4];
+    memcpy(programmExternalBackup, programmExternal, sizeof(programmExternal));
+    uint8_t* pointerBuffer = (uint8_t*)programmExternal; 
+    uint8_t receivedBytes = 0;
+    while (receivedBytes < sizeof(programmExternal))
+    {
+        if (--timeout == 0) 
+        {
+            Serial1.end();
+            memcpy(programmExternal, programmExternalBackup, sizeof(programmExternal));
+        
+            u8g.firstPage();  
+            do 
+            {
+                u8g.drawStr(40, 28, "Timeout!");
+            } 
+            while (u8g.nextPage());
+            
+            #ifndef DEBUG
+            tone(pinBuzzer, 1000);
+            for (volatile uint32_t t=0; t<200000; t++);    
+            noTone(pinBuzzer);
+            #endif
+            for (volatile uint32_t t=0; t<800000; t++);  
+            return false;
+        }
+        uint8_t lastByte = 0; 
+        if (Serial1.available()) 
+        {
+            lastByte = *pointerBuffer++ = Serial1.read();
+            receivedBytes++;
+            timeout = startTimeout;
+        }
+        char strTimer[24] = {0};
+        char strLastByte[24];
+        char strBytesCount[24];
+        sprintf(strTimer, "Timer: %u", timeout);
+        sprintf(strLastByte, "Last received byte: %d", lastByte);
+        sprintf(strBytesCount, "All received bytes: %d", receivedBytes);
+        u8g.firstPage();  
+        do 
+        {               
+            u8g.drawStr(0, 8, strTimer);
+            u8g.drawStr(0, 24, strLastByte);
+            u8g.drawStr(0, 40, strBytesCount);
+        } 
+        while (u8g.nextPage());
+    }
+    Serial1.end();
+    return true;
+}
+
 void DrawMenu()
 {
     const char* menuItems[] = 
@@ -270,8 +342,22 @@ void DrawMenu()
                 switch (selectedItem) 
                 {
                     case 0:
+                        #ifdef DEBUG
+                        currentProgramm = programmDebug;
+                        #else
+                        currentProgramm = programmDefault;
+                        #endif
+                        return;
                     case 1:
+                        currentProgramm = programmExternal;
+                        return;
                     case 2:
+                        if (LoadFromPC())
+                        {                            
+                            currentProgramm = programmExternal;
+                            return;
+                        }
+                        break;
                     case 3:
                         return;
                 }
@@ -284,6 +370,8 @@ void setup(void)
     pinMode(pinBacklight, OUTPUT);
     digitalWrite(pinBacklight, HIGH);
     pinMode(pinBuzzer, OUTPUT);
+    pinMode(pinUART,   OUTPUT);
+    digitalWrite(pinUART, LOW);  
     u8g.setRot180();
     u8g.setColorIndex(1);
     u8g.setContrast(0);
@@ -310,21 +398,18 @@ ISR(TIMER1_COMPA_vect)
 }
 
 void loop(void) 
-{
+{           
     bool backlight = true;
     while (true)
     {
         if (GetJoystick() == joyEnter)
         {       
-            // load programm with enabled interrupts ( with traffics on the screen )     
-            noInterrupts();
+            TIMSK1 &= ~(1 << OCIE1A);
             DrawMenu();
-            interrupts();
+            sysTime = 0;            
+            TIMSK1 |= (1 << OCIE1A);
             //backlight = !backlight; 
             //digitalWrite(pinBacklight, backlight);
         }
     }
-
-  
-  
 }
