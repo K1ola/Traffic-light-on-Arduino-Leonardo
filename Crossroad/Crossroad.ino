@@ -1,14 +1,23 @@
 #include "U8glib.h"
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#include <Adafruit_NeoPixel.h>
 
+// Which pin on the Arduino is connected to the NeoPixels?
+#define PIN            12
+// How many NeoPixels are attached to the Arduino?
+#define NUMPIXELS      4
+
+#define DEBUG
 #define countof(a) ( sizeof(a)/sizeof(a[0]) ) 
 
+Adafruit_NeoPixel pixels = Adafruit_NeoPixel(NUMPIXELS, PIN, NEO_RGB + NEO_KHZ800);
 U8GLIB_NHD_C12864 u8g(13, 11, 10, 9, 8);	// SPI Com: SCK = 13, MOSI = 11, CS = 10, A0 = 9, RST = 8
 
 const int pinJoystick = 0;
 const int pinBacklight = 7;
 const int pinBuzzer = 3;
+const int pinUART = 4;
 
 uint32_t sysTime = 0;
 
@@ -34,7 +43,7 @@ struct ProgrammElem
     TrafficLightState major, minor;
 };
 
-const ProgrammElem programm1[] = 
+const ProgrammElem programmDefault[] = 
 {
     {90, {{0,0,1,0,0}, 4}, {{1,0,0,0,0}, 3}},
     
@@ -44,6 +53,8 @@ const ProgrammElem programm1[] =
         
     {90+30+30+15, {{1,0,0,0,0}, 4}, {{1,0,0,0,0}, 3}}
 };
+
+ProgrammElem programmExternal[4] = {0};
 
 const ProgrammElem programmDebug[] = 
 {
@@ -56,7 +67,11 @@ const ProgrammElem programmDebug[] =
     {20+20+15+10, {{1,0,0,0,0}, 4}, {{1,0,0,0,0}, 3}}
 };
 
+#ifdef DEBUG
 const ProgrammElem *currentProgramm = programmDebug;
+#else
+const ProgrammElem *currentProgramm = programmDefault;
+#endif
 int currentProgrammSize = countof(programmDebug);
 
 Joystick GetJoystick()
@@ -229,6 +244,69 @@ void RedrawScreen()
     while (u8g.nextPage());
 }
 
+bool LoadFromPC()
+{    
+    const uint32_t startTimeout = 1000; 
+    // one line for traffic - 0A 00 00 00 01 00 00 04 01 00 00 00 00 03       
+    Serial1.begin(9600);
+    while (!Serial1); 
+    uint32_t timeout = startTimeout; 
+    ProgrammElem programmExternalBackup[4];
+    memcpy(programmExternalBackup, programmExternal, sizeof(programmExternal));
+    uint8_t* pointerBuffer = (uint8_t*)programmExternal; 
+    uint8_t receivedBytes = 0;
+    char strTimer[24] = {0};
+    char strLastByte[24] = {0};
+    char strBytesCount[24] = {0};
+    sprintf(strLastByte, "Last received: 0");
+    sprintf(strBytesCount, "All received: 0");
+    while (receivedBytes < sizeof(programmExternal))
+    {
+        if (--timeout == 0) 
+        {
+            Serial1.end();
+            memcpy(programmExternal, programmExternalBackup, sizeof(programmExternal));
+        
+            u8g.firstPage();  
+            do 
+            {
+                u8g.drawStr(40, 28, "Timeout!");
+            } 
+            while (u8g.nextPage());
+            
+            #ifndef DEBUG
+            tone(pinBuzzer, 1000);
+            for (volatile uint32_t t=0; t<200000; t++);    
+            noTone(pinBuzzer);
+            #endif
+            for (volatile uint32_t t=0; t<800000; t++);  
+            return false;
+        }
+        uint8_t lastByte = 0; 
+        if (Serial1.available() > 0) 
+        {
+            lastByte = *pointerBuffer++ = Serial1.read();
+            receivedBytes++;
+            timeout = startTimeout;
+            
+            sprintf(strLastByte, "Last byte: %d", lastByte);
+            sprintf(strBytesCount, "All bytes: %d", receivedBytes);
+        }
+
+        sprintf(strTimer, "Timer: %u", timeout);
+        u8g.firstPage();  
+        do 
+        {               
+            u8g.drawStr(0, 8, strTimer);
+            u8g.drawStr(0, 24, strLastByte);
+            u8g.drawStr(0, 40, strBytesCount);
+        } 
+        while (u8g.nextPage());
+    }
+    Serial1.end();
+    return true;
+}
+
 void DrawMenu()
 {
     const char* menuItems[] = 
@@ -270,8 +348,22 @@ void DrawMenu()
                 switch (selectedItem) 
                 {
                     case 0:
+                        #ifdef DEBUG
+                        currentProgramm = programmDebug;
+                        #else
+                        currentProgramm = programmDefault;
+                        #endif
+                        return;
                     case 1:
+                        currentProgramm = programmExternal;
+                        return;
                     case 2:
+                        if (LoadFromPC())
+                        {                            
+                            currentProgramm = programmExternal;
+                            return;
+                        }
+                        break;
                     case 3:
                         return;
                 }
@@ -284,12 +376,18 @@ void setup(void)
     pinMode(pinBacklight, OUTPUT);
     digitalWrite(pinBacklight, HIGH);
     pinMode(pinBuzzer, OUTPUT);
+    pinMode(pinUART,   OUTPUT);
+    digitalWrite(pinUART, LOW); 
+    //for debug output
+    Serial.begin(9600); 
     u8g.setRot180();
     u8g.setColorIndex(1);
     u8g.setContrast(0);
     u8g.setFont(u8g_font_6x12);
     u8g.setFontRefHeightText();
     u8g.setFontPosTop();
+
+    pixels.begin();
 
     // every sec interrupt
     noInterrupts();
@@ -310,21 +408,28 @@ ISR(TIMER1_COMPA_vect)
 }
 
 void loop(void) 
-{
+{           
     bool backlight = true;
+    int delayval = 500;
     while (true)
     {
         if (GetJoystick() == joyEnter)
         {       
-            // load programm with enabled interrupts ( with traffics on the screen )     
-            noInterrupts();
+            TIMSK1 &= ~(1 << OCIE1A);
             DrawMenu();
-            interrupts();
+            sysTime = 0;            
+            TIMSK1 |= (1 << OCIE1A);
             //backlight = !backlight; 
             //digitalWrite(pinBacklight, backlight);
         }
-    }
 
-  
-  
+         
+        // pixels.Color takes RGB values, from 0,0,0 up to 255,255,255
+        pixels.setPixelColor(2, pixels.Color(0,150,0)); // Назначаем для первого светодиода цвет "Красный"
+        pixels.setPixelColor(1, pixels.Color(255, 255, 0)); // Назначаем для первого светодиода цвет "Желтый"
+        pixels.setPixelColor(0, pixels.Color(255,0,0)); // Назначаем для первого светодиода цвет "Зеленый"
+        pixels.show(); // This sends the updated pixel color to the hardware.
+            
+          
+    }
 }
