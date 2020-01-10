@@ -1,10 +1,17 @@
 #include "U8glib.h"
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#include <Adafruit_NeoPixel.h>
+
+// Which pin on the Arduino is connected to the NeoPixels?
+#define PIN            12
+// How many NeoPixels are attached to the Arduino?
+#define NUMPIXELS      4
 
 #define DEBUG
 #define countof(a) ( sizeof(a)/sizeof(a[0]) ) 
 
+Adafruit_NeoPixel pixels = Adafruit_NeoPixel(NUMPIXELS, PIN, NEO_RGB + NEO_KHZ800);
 U8GLIB_NHD_C12864 u8g(13, 11, 10, 9, 8);	// SPI Com: SCK = 13, MOSI = 11, CS = 10, A0 = 9, RST = 8
 
 const int pinJoystick = 0;
@@ -380,6 +387,8 @@ void setup(void)
     u8g.setFontRefHeightText();
     u8g.setFontPosTop();
 
+    pixels.begin();
+
     // every sec interrupt
     noInterrupts();
     TCCR1A = 0;
@@ -401,6 +410,7 @@ ISR(TIMER1_COMPA_vect)
 void loop(void) 
 {           
     bool backlight = true;
+    int delayval = 500;
     while (true)
     {
         if (GetJoystick() == joyEnter)
@@ -412,5 +422,14 @@ void loop(void)
             //backlight = !backlight; 
             //digitalWrite(pinBacklight, backlight);
         }
+
+         
+        // pixels.Color takes RGB values, from 0,0,0 up to 255,255,255
+        pixels.setPixelColor(2, pixels.Color(0,150,0)); // Назначаем для первого светодиода цвет "Красный"
+        pixels.setPixelColor(1, pixels.Color(255, 255, 0)); // Назначаем для первого светодиода цвет "Желтый"
+        pixels.setPixelColor(0, pixels.Color(255,0,0)); // Назначаем для первого светодиода цвет "Зеленый"
+        pixels.show(); // This sends the updated pixel color to the hardware.
+            
+          
     }
 }
