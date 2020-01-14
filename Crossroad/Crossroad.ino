@@ -153,10 +153,10 @@ void DrawTrafficLight(uint8_t x, uint8_t y, int angle, TrafficLightState *state)
 
 void GetCurrentState(TrafficLightState *major, TrafficLightState *minor) 
 {
-    int maxTime = currentProgramm[currentProgrammSize-1].currTime;
-    int localSysTime = sysTime % maxTime + 1;
+    int maxTime = currentProgramm[currentProgrammSize-1].currTime;  //время последней программы в массиве
+    int localSysTime = sysTime % maxTime + 1;   //вычислить из системного общего времени, какая часть прошла для светофоров. П
     int i;
-    for (i=0; i<currentProgrammSize; i++)
+    for (i=0; i<currentProgrammSize; i++)   //обновить состояния светофоров в соответствии с текущей программой
     {
         if (localSysTime<=currentProgramm[i].currTime) 
         {
@@ -165,10 +165,10 @@ void GetCurrentState(TrafficLightState *major, TrafficLightState *minor)
             break;
         }
     }
-    int reverseCounter = currentProgramm[i].currTime - localSysTime;
+    int reverseCounter = currentProgramm[i].currTime - localSysTime;    //счетчик оставшего для движения времени 
 
-    bool isGreen = major->section[green] || minor->section[green];
-    if (reverseCounter < 2 && isGreen) 
+    bool isGreen = major->section[green] || minor->section[green];      //горит ли на главных или второстепенных стефорах "зеленый"?
+    if (reverseCounter < 2 && isGreen)  //зажечь "желтый" при переходес "зеленый" на "красный" на главных или второстепенных стефорах 
     {
         if (major->section[green])
         {
@@ -182,9 +182,9 @@ void GetCurrentState(TrafficLightState *major, TrafficLightState *minor)
             minor->section[yellow] = true;
         }
     } 
-    else if (reverseCounter <= (isGreen? 7 : 5))
+    else if (reverseCounter <= (isGreen? 7 : 5))   //обеспечить переключение с "зеленого" и стрелки на "красный" на главных или второстепенных стефорах, без зажигания "желтого"
     {
-        if (reverseCounter % 2)
+        if (reverseCounter % 2) //обеспечить мигание "зеленый" при перехода с "зеленый" на "красный" на главных или второстепенных стефорах
         {
             for (int j=green; j<=right; j++)
             {
@@ -193,9 +193,10 @@ void GetCurrentState(TrafficLightState *major, TrafficLightState *minor)
             }
         } 
     }
+    // "красный" загружается при установке текущей программы
 
     char timeStr[6];
-    sprintf(timeStr, "%03d", reverseCounter+1);
+    sprintf(timeStr, "%03d", reverseCounter+1);     //отрисовать оставшееся время
     u8g.drawStr(57, 28, timeStr);
 }
 
@@ -390,15 +391,15 @@ void setup(void)
     pixels.begin();
 
     // every sec interrupt
-    noInterrupts();
-    TCCR1A = 0;
+    noInterrupts(); //отключить глобавльные прерывания
+    TCCR1A = 0; //установить регистры в 0
     TCCR1B = 0;
-    OCR1A = 15624;
-    TCCR1B |= (1 << WGM12); 
-    TCCR1B |= (1 << CS10);
+    OCR1A = 15624; // установка регистра совпадения
+    TCCR1B |= (1 << WGM12); // включить CTC режим 
+    TCCR1B |= (1 << CS10); // Установить биты на коэффициент деления 1024
     TCCR1B |= (1 << CS12);
-    TIMSK1 |= (1 << OCIE1A);
-    interrupts();
+    TIMSK1 |= (1 << OCIE1A);  // включить прерывание по совпадению таймера 
+    interrupts(); // включить глобальные прерывания
 }
 
 ISR(TIMER1_COMPA_vect)
@@ -415,10 +416,10 @@ void loop(void)
     {
         if (GetJoystick() == joyEnter)
         {       
-            TIMSK1 &= ~(1 << OCIE1A);
+            TIMSK1 &= ~(1 << OCIE1A); // выключить прерывание по совпадению таймера
             DrawMenu();
             sysTime = 0;            
-            TIMSK1 |= (1 << OCIE1A);
+            TIMSK1 |= (1 << OCIE1A); // включить прерывание по совпадению таймера
             //backlight = !backlight; 
             //digitalWrite(pinBacklight, backlight);
         }
