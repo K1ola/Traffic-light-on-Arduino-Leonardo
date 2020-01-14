@@ -7,6 +7,7 @@
 #define PIN6            6
 #define PIN5            5
 #define PIN4            4
+#define PIN2            2
 // How many NeoPixels are attached to the Arduino?
 #define NUMPIXELS      4
 
@@ -17,6 +18,7 @@ Adafruit_NeoPixel pixelsMajor12 = Adafruit_NeoPixel(NUMPIXELS, PIN12, NEO_RGB + 
 Adafruit_NeoPixel pixelsMinor6 = Adafruit_NeoPixel(NUMPIXELS, PIN6, NEO_RGB + NEO_KHZ800);
 Adafruit_NeoPixel pixelsMajor5 = Adafruit_NeoPixel(NUMPIXELS, PIN5, NEO_RGB + NEO_KHZ800);
 Adafruit_NeoPixel pixelsMinor4 = Adafruit_NeoPixel(NUMPIXELS, PIN4, NEO_RGB + NEO_KHZ800);
+Adafruit_NeoPixel pixelsPedestrian2 = Adafruit_NeoPixel(NUMPIXELS, PIN2, NEO_RGB + NEO_KHZ800);
 U8GLIB_NHD_C12864 u8g(13, 11, 10, 9, 8);	// SPI Com: SCK = 13, MOSI = 11, CS = 10, A0 = 9, RST = 8
 
 const int pinJoystick = 0;
@@ -101,7 +103,8 @@ void TurnOnLEDs(int angle, int light_item)
             {
                case 0:
                    pixelsMinor6.setPixelColor(2, pixelsMinor6.Color(0,150,0)); // Назначаем цвет "Красный" 
-                   pixelsMinor4.setPixelColor(2, pixelsMinor4.Color(0,150,0)); // Назначаем цвет "Красный" 
+                   pixelsMinor4.setPixelColor(2, pixelsMinor4.Color(0,150,0)); // Назначаем цвет "Красный"
+//                   *minorRed = true; 
                    break;
                case 1:
                    pixelsMinor6.setPixelColor(1, pixelsMinor6.Color(255, 255, 0)); // Назначаем цвет "Желтый"
@@ -128,6 +131,7 @@ void TurnOnLEDs(int angle, int light_item)
                    pixelsMajor5.setPixelColor(0, pixelsMajor5.Color(0,150,0)); // Назначаем цвет "Красный"
                    pixelsMajor12.show();
                    pixelsMajor5.show(); 
+//                   *majorRed = true;
                    break;
                case 1:
                    pixelsMajor12.setPixelColor(1, pixelsMajor12.Color(255, 255, 0)); // Назначаем цвет "Желтый"
@@ -145,7 +149,10 @@ void TurnOnLEDs(int angle, int light_item)
                    pixelsMajor12.setPixelColor(4, pixelsMajor12.Color(255,0,0)); // Назначаем цвет "Зеленый"
                    pixelsMajor5.setPixelColor(4, pixelsMajor5.Color(255,0,0)); // Назначаем цвет "Зеленый"
                    break;
-            }   
+            }
+//    *flag = *minorRed && *majorRed; 
+    //Serial.write(minorRed ? "minorRed is true\n" : "minorRed is false\n");     
+    //Serial.write(majorRed ? "majorRed is true\n" : "majorRed is false\n");   
 }
 
 void TurnOffLEDs(int angle, int light_item) 
@@ -200,12 +207,27 @@ void TurnOffLEDs(int angle, int light_item)
             }     
 }
 
+void TurnOnPedestrian(bool flag)
+{
+    if (flag)
+    {
+       pixelsPedestrian2.setPixelColor(0, pixelsPedestrian2.Color(255,0,0)); // Назначаем цвет "Зеленый"
+       pixelsPedestrian2.setPixelColor(1, pixelsPedestrian2.Color(0,0,0)); // Назначаем цвет "Черный"       
+    }
+    else
+    { 
+       pixelsPedestrian2.setPixelColor(0, pixelsPedestrian2.Color(0,0,0)); // Назначаем цвет "Черный" 
+       pixelsPedestrian2.setPixelColor(1, pixelsPedestrian2.Color(0,150,0)); // Назначаем цвет "Красный"      
+    }
+}
+
 void ShowLEDs()
 {
     pixelsMajor12.show();
     pixelsMajor5.show(); 
     pixelsMinor6.show(); 
     pixelsMinor4.show(); 
+    pixelsPedestrian2.show(); 
 }
 
 void DrawCrosswalk(uint8_t x, uint8_t y, int angle, uint8_t size)
@@ -294,6 +316,7 @@ void GetCurrentState(TrafficLightState *major, TrafficLightState *minor)
     int reverseCounter = currentProgramm[i].currTime - localSysTime;    //счетчик оставшего для движения времени 
 
     bool isGreen = major->section[green] || minor->section[green];      //горит ли на главных или второстепенных стефорах "зеленый"?
+    bool isRed = major->section[red] && minor->section[red] && !major->section[right] && !major->section[left];      //горит ли на главных или второстепенных стефорах "зеленый"?
     if (reverseCounter < 2 && isGreen)  //зажечь "желтый" при переходес "зеленый" на "красный" на главных или второстепенных стефорах 
     {
         if (major->section[green])
@@ -320,7 +343,8 @@ void GetCurrentState(TrafficLightState *major, TrafficLightState *minor)
         } 
     }
     // "красный" загружается при установке текущей программы
-
+    TurnOnPedestrian(isRed);
+    
     char timeStr[6];
     sprintf(timeStr, "%03d", reverseCounter+1);     //отрисовать оставшееся время
     u8g.drawStr(57, 28, timeStr);
@@ -518,6 +542,7 @@ void setup(void)
     pixelsMajor5.begin();    
     pixelsMinor6.begin();
     pixelsMinor4.begin();
+    pixelsPedestrian2.begin(); 
 
     // every sec interrupt
     noInterrupts(); //отключить глобавльные прерывания
@@ -545,14 +570,6 @@ void loop(void)
     {
         if (GetJoystick() == joyEnter)
         {       
-//            
-//            pixelsMajor12.setPixelColor(0, pixelsMajor12.Color(0,150,0));
-//            //pixelsMajor12.setPixelColor(1, pixelsMajor12.Color(0,150,0)); 
-//                    
-//            pixelsMajor5.setPixelColor(0, pixelsMajor12.Color(0,150,0));           
-//            pixelsMajor5.setPixelColor(2, pixelsMajor12.Color(0,150,0));
-//            pixelsMajor12.show(); 
-//            pixelsMajor5.show(); 
             TIMSK1 &= ~(1 << OCIE1A); // выключить прерывание по совпадению таймера
             DrawMenu();
             sysTime = 0;            
