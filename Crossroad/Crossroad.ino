@@ -142,13 +142,57 @@ void DrawTrafficLight(uint8_t x, uint8_t y, int angle, TrafficLightState *state)
     }
     for (uint8_t i = 0; i < state->count; i++)
     {
-        if (state->section[i])
+        if (state->section[i]) 
+        {
             //lights are on
             u8g.drawDisc(sx[i], sy[i], radius);
-        else
+            if (angle == 90 || angle == 270)
+                switch (i)
+                {
+                   case 0:
+                       pixels.setPixelColor(2, pixels.Color(0,150,0)); // Назначаем цвет "Красный" 
+                       break;
+                   case 1:
+                       pixels.setPixelColor(1, pixels.Color(255, 255, 0)); // Назначаем цвет "Желтый"
+                       break;
+                   case 2:
+                       pixels.setPixelColor(0, pixels.Color(255,0,0)); // Назначаем цвет "Зеленый"
+                       break;
+                   case 3:
+                       pixels.setPixelColor(0, pixels.Color(255,0,0)); // Назначаем цвет "Зеленый"
+                       break;
+                   case 4: 
+                       pixels.setPixelColor(0, pixels.Color(255,0,0)); // Назначаем цвет "Зеленый"
+                       break;
+                }
+        }
+        else 
+        {
             //lights are off
             u8g.drawCircle(sx[i], sy[i], radius);
-    }      
+            if (angle == 90 || angle == 270)
+                switch (i)
+                {
+                   case 0:
+                       Serial.write(state->section[i]);
+                       pixels.setPixelColor(2, pixels.Color(0,0,0));
+                       break;
+                   case 1:
+                       pixels.setPixelColor(1, pixels.Color(0,0,0));
+                       break;
+                   case 2:
+                       pixels.setPixelColor(0, pixels.Color(0,0,0));
+                       break;
+                   case 3:
+                       pixels.setPixelColor(0, pixels.Color(0,0,0));
+                       break;
+                   case 4: 
+                       pixels.setPixelColor(0, pixels.Color(0,0,0));
+                       break;
+                }
+        }
+    }  
+    pixels.show();    
 }
 
 void GetCurrentState(TrafficLightState *major, TrafficLightState *minor) 
@@ -426,10 +470,10 @@ void loop(void)
 
          
         // pixels.Color takes RGB values, from 0,0,0 up to 255,255,255
-        pixels.setPixelColor(2, pixels.Color(0,150,0)); // Назначаем для первого светодиода цвет "Красный"
-        pixels.setPixelColor(1, pixels.Color(255, 255, 0)); // Назначаем для первого светодиода цвет "Желтый"
-        pixels.setPixelColor(0, pixels.Color(255,0,0)); // Назначаем для первого светодиода цвет "Зеленый"
-        pixels.show(); // This sends the updated pixel color to the hardware.
+//        pixels.setPixelColor(2, pixels.Color(0,150,0)); // Назначаем для первого светодиода цвет "Красный"
+//        pixels.setPixelColor(1, pixels.Color(255, 255, 0)); // Назначаем для первого светодиода цвет "Желтый"
+//        pixels.setPixelColor(0, pixels.Color(255,0,0)); // Назначаем для первого светодиода цвет "Зеленый"
+//        pixels.show(); // This sends the updated pixel color to the hardware.
             
           
     }
