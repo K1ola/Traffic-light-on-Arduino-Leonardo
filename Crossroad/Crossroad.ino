@@ -124,16 +124,18 @@ void TurnOnLEDs(int angle, int light_item)
             switch (light_item)
             {
                case 0:
-                   pixelsMajor12.setPixelColor(2, pixelsMajor12.Color(0,150,0)); // Назначаем цвет "Красный" 
-                   pixelsMajor5.setPixelColor(2, pixelsMajor5.Color(0,150,0)); // Назначаем цвет "Красный" 
+                   pixelsMajor12.setPixelColor(0, pixelsMajor12.Color(0,150,0)); // Назначаем цвет "Красный" 
+                   pixelsMajor5.setPixelColor(0, pixelsMajor5.Color(0,150,0)); // Назначаем цвет "Красный"
+                   pixelsMajor12.show();
+                   pixelsMajor5.show(); 
                    break;
                case 1:
                    pixelsMajor12.setPixelColor(1, pixelsMajor12.Color(255, 255, 0)); // Назначаем цвет "Желтый"
                    pixelsMajor5.setPixelColor(1, pixelsMajor5.Color(255, 255, 0)); // Назначаем цвет "Желтый"
                    break;
                case 2:
-                   pixelsMajor12.setPixelColor(0, pixelsMajor12.Color(255,0,0)); // Назначаем цвет "Зеленый"
-                   pixelsMajor5.setPixelColor(0, pixelsMajor5.Color(255,0,0)); // Назначаем цвет "Зеленый"
+                   pixelsMajor12.setPixelColor(2, pixelsMajor12.Color(255,0,0)); // Назначаем цвет "Зеленый"
+                   pixelsMajor5.setPixelColor(2, pixelsMajor5.Color(255,0,0)); // Назначаем цвет "Зеленый"
                    break;
                case 3:
                    pixelsMajor12.setPixelColor(3, pixelsMajor12.Color(255,0,0)); // Назначаем цвет "Зеленый"
@@ -176,24 +178,24 @@ void TurnOffLEDs(int angle, int light_item)
             switch (light_item)
             {
                case 0:
-                   pixelsMajor12.setPixelColor(2, pixelsMajor12.Color(0,0,0)); // Назначаем цвет "Черный" 
-                   pixelsMajor5.setPixelColor(2, pixelsMajor5.Color(0,0,0));
+                   pixelsMajor12.setPixelColor(0, pixelsMajor12.Color(0,0,0)); // Назначаем цвет "Черный" 
+                   pixelsMajor5.setPixelColor(0, pixelsMajor5.Color(0,0,0));
                    break;
                case 1:
                    pixelsMajor12.setPixelColor(1, pixelsMajor12.Color(0,0,0));
                    pixelsMajor5.setPixelColor(1, pixelsMajor5.Color(0,0,0));
                    break;
                case 2:
-                   pixelsMajor12.setPixelColor(0, pixelsMajor12.Color(0,0,0));
-                   pixelsMajor5.setPixelColor(0, pixelsMajor5.Color(0,0,0));
+                   pixelsMajor12.setPixelColor(2, pixelsMajor12.Color(0,0,0));
+                   pixelsMajor5.setPixelColor(2, pixelsMajor5.Color(0,0,0));
                    break;
                case 3:
-                   pixelsMajor12.setPixelColor(0, pixelsMajor12.Color(0,0,0));
-                   pixelsMajor5.setPixelColor(0, pixelsMajor5.Color(0,0,0)); 
+                   pixelsMajor12.setPixelColor(3, pixelsMajor12.Color(0,0,0));
+                   pixelsMajor5.setPixelColor(3, pixelsMajor5.Color(0,0,0)); 
                    break;
                case 4: 
-                   pixelsMajor12.setPixelColor(0, pixelsMajor12.Color(0,0,0));
-                   pixelsMajor5.setPixelColor(0, pixelsMajor5.Color(0,0,0));
+                   pixelsMajor12.setPixelColor(4, pixelsMajor12.Color(0,0,0));
+                   pixelsMajor5.setPixelColor(4, pixelsMajor5.Color(0,0,0));
                    break;
             }     
 }
@@ -264,55 +266,15 @@ void DrawTrafficLight(uint8_t x, uint8_t y, int angle, TrafficLightState *state)
             //lights are on
             u8g.drawDisc(sx[i], sy[i], radius);
             TurnOnLEDs(angle, i);
-//            if (angle == 90 || angle == 270)
-//                switch (i)
-//                {
-//                   case 0:
-//                       pixels.setPixelColor(2, pixels.Color(0,150,0)); // Назначаем цвет "Красный" 
-//                       break;
-//                   case 1:
-//                       pixels.setPixelColor(1, pixels.Color(255, 255, 0)); // Назначаем цвет "Желтый"
-//                       break;
-//                   case 2:
-//                       pixels.setPixelColor(0, pixels.Color(255,0,0)); // Назначаем цвет "Зеленый"
-//                       break;
-//                   case 3:
-//                       pixels.setPixelColor(0, pixels.Color(255,0,0)); // Назначаем цвет "Зеленый"
-//                       break;
-//                   case 4: 
-//                       pixels.setPixelColor(0, pixels.Color(255,0,0)); // Назначаем цвет "Зеленый"
-//                       break;
-//                }
         }
         else 
         {
             //lights are off
             u8g.drawCircle(sx[i], sy[i], radius);
             TurnOffLEDs(angle, i);
-//            if (angle == 90 || angle == 270)
-//                switch (i)
-//                {
-//                   case 0:
-//                       Serial.write(state->section[i]);
-//                       pixels.setPixelColor(2, pixels.Color(0,0,0));
-//                       break;
-//                   case 1:
-//                       pixels.setPixelColor(1, pixels.Color(0,0,0));
-//                       break;
-//                   case 2:
-//                       pixels.setPixelColor(0, pixels.Color(0,0,0));
-//                       break;
-//                   case 3:
-//                       pixels.setPixelColor(0, pixels.Color(0,0,0));
-//                       break;
-//                   case 4: 
-//                       pixels.setPixelColor(0, pixels.Color(0,0,0));
-//                       break;
-//                }
         }
     }  
-    ShowLEDs();
-//    pixels.show();    
+    ShowLEDs();   
 }
 
 void GetCurrentState(TrafficLightState *major, TrafficLightState *minor) 
@@ -583,6 +545,14 @@ void loop(void)
     {
         if (GetJoystick() == joyEnter)
         {       
+//            
+//            pixelsMajor12.setPixelColor(0, pixelsMajor12.Color(0,150,0));
+//            //pixelsMajor12.setPixelColor(1, pixelsMajor12.Color(0,150,0)); 
+//                    
+//            pixelsMajor5.setPixelColor(0, pixelsMajor12.Color(0,150,0));           
+//            pixelsMajor5.setPixelColor(2, pixelsMajor12.Color(0,150,0));
+//            pixelsMajor12.show(); 
+//            pixelsMajor5.show(); 
             TIMSK1 &= ~(1 << OCIE1A); // выключить прерывание по совпадению таймера
             DrawMenu();
             sysTime = 0;            
@@ -591,7 +561,7 @@ void loop(void)
             //digitalWrite(pinBacklight, backlight);
         }
 
-         
+
         // pixels.Color takes RGB values, from 0,0,0 up to 255,255,255
 //        pixels.setPixelColor(2, pixels.Color(0,150,0)); // Назначаем для первого светодиода цвет "Красный"
 //        pixels.setPixelColor(1, pixels.Color(255, 255, 0)); // Назначаем для первого светодиода цвет "Желтый"
