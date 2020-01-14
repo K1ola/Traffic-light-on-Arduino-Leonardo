@@ -3,15 +3,20 @@
 #include <avr/interrupt.h>
 #include <Adafruit_NeoPixel.h>
 
-// Which pin on the Arduino is connected to the NeoPixels?
-#define PIN            12
+#define PIN12            12
+#define PIN6            6
+#define PIN5            5
+#define PIN4            4
 // How many NeoPixels are attached to the Arduino?
 #define NUMPIXELS      4
 
 #define DEBUG
 #define countof(a) ( sizeof(a)/sizeof(a[0]) ) 
 
-Adafruit_NeoPixel pixels = Adafruit_NeoPixel(NUMPIXELS, PIN, NEO_RGB + NEO_KHZ800);
+Adafruit_NeoPixel pixelsMajor12 = Adafruit_NeoPixel(NUMPIXELS, PIN12, NEO_RGB + NEO_KHZ800);
+Adafruit_NeoPixel pixelsMinor6 = Adafruit_NeoPixel(NUMPIXELS, PIN6, NEO_RGB + NEO_KHZ800);
+Adafruit_NeoPixel pixelsMajor5 = Adafruit_NeoPixel(NUMPIXELS, PIN5, NEO_RGB + NEO_KHZ800);
+Adafruit_NeoPixel pixelsMinor4 = Adafruit_NeoPixel(NUMPIXELS, PIN4, NEO_RGB + NEO_KHZ800);
 U8GLIB_NHD_C12864 u8g(13, 11, 10, 9, 8);	// SPI Com: SCK = 13, MOSI = 11, CS = 10, A0 = 9, RST = 8
 
 const int pinJoystick = 0;
@@ -89,6 +94,118 @@ Joystick GetJoystick()
     return state;
 }
 
+void TurnOnLEDs(int angle, int light_item)
+{
+     if (angle == 90 || angle == 270)   //minor
+            switch (light_item)
+            {
+               case 0:
+                   pixelsMinor6.setPixelColor(2, pixelsMinor6.Color(0,150,0)); // Назначаем цвет "Красный" 
+                   pixelsMinor4.setPixelColor(2, pixelsMinor4.Color(0,150,0)); // Назначаем цвет "Красный" 
+                   break;
+               case 1:
+                   pixelsMinor6.setPixelColor(1, pixelsMinor6.Color(255, 255, 0)); // Назначаем цвет "Желтый"
+                   pixelsMinor4.setPixelColor(1, pixelsMinor4.Color(255, 255, 0)); // Назначаем цвет "Желтый"
+                   break;
+               case 2:
+                   pixelsMinor6.setPixelColor(0, pixelsMinor6.Color(255,0,0)); // Назначаем цвет "Зеленый"
+                   pixelsMinor4.setPixelColor(0, pixelsMinor4.Color(255,0,0)); // Назначаем цвет "Желтый"
+                   break;
+               case 3:
+                   pixelsMinor6.setPixelColor(0, pixelsMinor6.Color(255,0,0)); // Назначаем цвет "Зеленый"
+                   pixelsMinor4.setPixelColor(0, pixelsMinor4.Color(255,0,0)); // Назначаем цвет "Желтый"
+                   break;
+               case 4: 
+                   pixelsMinor6.setPixelColor(0, pixelsMinor6.Color(255,0,0)); // Назначаем цвет "Зеленый"
+                   pixelsMinor4.setPixelColor(0, pixelsMinor4.Color(255,0,0)); // Назначаем цвет "Желтый"
+                   break;
+            }   
+    if (angle == 0 || angle == 180)     //major
+            switch (light_item)
+            {
+               case 0:
+                   pixelsMajor12.setPixelColor(2, pixelsMajor12.Color(0,150,0)); // Назначаем цвет "Красный" 
+                   pixelsMajor5.setPixelColor(2, pixelsMajor5.Color(0,150,0)); // Назначаем цвет "Красный" 
+                   break;
+               case 1:
+                   pixelsMajor12.setPixelColor(1, pixelsMajor12.Color(255, 255, 0)); // Назначаем цвет "Желтый"
+                   pixelsMajor5.setPixelColor(1, pixelsMajor5.Color(255, 255, 0)); // Назначаем цвет "Желтый"
+                   break;
+               case 2:
+                   pixelsMajor12.setPixelColor(0, pixelsMajor12.Color(255,0,0)); // Назначаем цвет "Зеленый"
+                   pixelsMajor5.setPixelColor(0, pixelsMajor5.Color(255,0,0)); // Назначаем цвет "Зеленый"
+                   break;
+               case 3:
+                   pixelsMajor12.setPixelColor(3, pixelsMajor12.Color(255,0,0)); // Назначаем цвет "Зеленый"
+                   pixelsMajor5.setPixelColor(3, pixelsMajor5.Color(255,0,0)); // Назначаем цвет "Зеленый"
+                   break;
+               case 4: 
+                   pixelsMajor12.setPixelColor(4, pixelsMajor12.Color(255,0,0)); // Назначаем цвет "Зеленый"
+                   pixelsMajor5.setPixelColor(4, pixelsMajor5.Color(255,0,0)); // Назначаем цвет "Зеленый"
+                   break;
+            }   
+}
+
+void TurnOffLEDs(int angle, int light_item) 
+{
+    if (angle == 90 || angle == 270)   //minor
+            switch (light_item)
+            {
+               case 0:
+                   pixelsMinor6.setPixelColor(2, pixelsMinor6.Color(0,0,0)); // Назначаем цвет "Черный" 
+                   pixelsMinor4.setPixelColor(2, pixelsMinor4.Color(0,0,0));
+                   break;
+               case 1:
+                   pixelsMinor6.setPixelColor(1, pixelsMinor6.Color(0,0,0));
+                   pixelsMinor4.setPixelColor(1, pixelsMinor4.Color(0,0,0));
+                   break;
+               case 2:
+                   pixelsMinor6.setPixelColor(0, pixelsMinor6.Color(0,0,0));
+                   pixelsMinor4.setPixelColor(0, pixelsMinor4.Color(0,0,0));
+                   break;
+               case 3:
+                   pixelsMinor6.setPixelColor(0, pixelsMinor6.Color(0,0,0));
+                   pixelsMinor4.setPixelColor(0, pixelsMinor4.Color(0,0,0));
+                   break;
+               case 4: 
+                   pixelsMinor6.setPixelColor(0, pixelsMinor6.Color(0,0,0));
+                   pixelsMinor4.setPixelColor(0, pixelsMinor4.Color(0,0,0));
+                   break;
+            }   
+    if (angle == 0 || angle == 180)     //major
+            switch (light_item)
+            {
+               case 0:
+                   pixelsMajor12.setPixelColor(2, pixelsMajor12.Color(0,0,0)); // Назначаем цвет "Черный" 
+                   pixelsMajor5.setPixelColor(2, pixelsMajor5.Color(0,0,0));
+                   break;
+               case 1:
+                   pixelsMajor12.setPixelColor(1, pixelsMajor12.Color(0,0,0));
+                   pixelsMajor5.setPixelColor(1, pixelsMajor5.Color(0,0,0));
+                   break;
+               case 2:
+                   pixelsMajor12.setPixelColor(0, pixelsMajor12.Color(0,0,0));
+                   pixelsMajor5.setPixelColor(0, pixelsMajor5.Color(0,0,0));
+                   break;
+               case 3:
+                   pixelsMajor12.setPixelColor(0, pixelsMajor12.Color(0,0,0));
+                   pixelsMajor5.setPixelColor(0, pixelsMajor5.Color(0,0,0)); 
+                   break;
+               case 4: 
+                   pixelsMajor12.setPixelColor(0, pixelsMajor12.Color(0,0,0));
+                   pixelsMajor5.setPixelColor(0, pixelsMajor5.Color(0,0,0));
+                   break;
+            }     
+}
+
+void ShowLEDs()
+{
+    pixelsMajor12.show();
+    pixelsMajor5.show(); 
+    pixelsMinor6.show(); 
+    pixelsMinor4.show(); 
+}
+
 void DrawCrosswalk(uint8_t x, uint8_t y, int angle, uint8_t size)
 {
     uint8_t step = angle == 0 ? 5 : 4;
@@ -146,53 +263,56 @@ void DrawTrafficLight(uint8_t x, uint8_t y, int angle, TrafficLightState *state)
         {
             //lights are on
             u8g.drawDisc(sx[i], sy[i], radius);
-            if (angle == 90 || angle == 270)
-                switch (i)
-                {
-                   case 0:
-                       pixels.setPixelColor(2, pixels.Color(0,150,0)); // Назначаем цвет "Красный" 
-                       break;
-                   case 1:
-                       pixels.setPixelColor(1, pixels.Color(255, 255, 0)); // Назначаем цвет "Желтый"
-                       break;
-                   case 2:
-                       pixels.setPixelColor(0, pixels.Color(255,0,0)); // Назначаем цвет "Зеленый"
-                       break;
-                   case 3:
-                       pixels.setPixelColor(0, pixels.Color(255,0,0)); // Назначаем цвет "Зеленый"
-                       break;
-                   case 4: 
-                       pixels.setPixelColor(0, pixels.Color(255,0,0)); // Назначаем цвет "Зеленый"
-                       break;
-                }
+            TurnOnLEDs(angle, i);
+//            if (angle == 90 || angle == 270)
+//                switch (i)
+//                {
+//                   case 0:
+//                       pixels.setPixelColor(2, pixels.Color(0,150,0)); // Назначаем цвет "Красный" 
+//                       break;
+//                   case 1:
+//                       pixels.setPixelColor(1, pixels.Color(255, 255, 0)); // Назначаем цвет "Желтый"
+//                       break;
+//                   case 2:
+//                       pixels.setPixelColor(0, pixels.Color(255,0,0)); // Назначаем цвет "Зеленый"
+//                       break;
+//                   case 3:
+//                       pixels.setPixelColor(0, pixels.Color(255,0,0)); // Назначаем цвет "Зеленый"
+//                       break;
+//                   case 4: 
+//                       pixels.setPixelColor(0, pixels.Color(255,0,0)); // Назначаем цвет "Зеленый"
+//                       break;
+//                }
         }
         else 
         {
             //lights are off
             u8g.drawCircle(sx[i], sy[i], radius);
-            if (angle == 90 || angle == 270)
-                switch (i)
-                {
-                   case 0:
-                       Serial.write(state->section[i]);
-                       pixels.setPixelColor(2, pixels.Color(0,0,0));
-                       break;
-                   case 1:
-                       pixels.setPixelColor(1, pixels.Color(0,0,0));
-                       break;
-                   case 2:
-                       pixels.setPixelColor(0, pixels.Color(0,0,0));
-                       break;
-                   case 3:
-                       pixels.setPixelColor(0, pixels.Color(0,0,0));
-                       break;
-                   case 4: 
-                       pixels.setPixelColor(0, pixels.Color(0,0,0));
-                       break;
-                }
+            TurnOffLEDs(angle, i);
+//            if (angle == 90 || angle == 270)
+//                switch (i)
+//                {
+//                   case 0:
+//                       Serial.write(state->section[i]);
+//                       pixels.setPixelColor(2, pixels.Color(0,0,0));
+//                       break;
+//                   case 1:
+//                       pixels.setPixelColor(1, pixels.Color(0,0,0));
+//                       break;
+//                   case 2:
+//                       pixels.setPixelColor(0, pixels.Color(0,0,0));
+//                       break;
+//                   case 3:
+//                       pixels.setPixelColor(0, pixels.Color(0,0,0));
+//                       break;
+//                   case 4: 
+//                       pixels.setPixelColor(0, pixels.Color(0,0,0));
+//                       break;
+//                }
         }
     }  
-    pixels.show();    
+    ShowLEDs();
+//    pixels.show();    
 }
 
 void GetCurrentState(TrafficLightState *major, TrafficLightState *minor) 
@@ -432,7 +552,10 @@ void setup(void)
     u8g.setFontRefHeightText();
     u8g.setFontPosTop();
 
-    pixels.begin();
+    pixelsMajor12.begin();
+    pixelsMajor5.begin();    
+    pixelsMinor6.begin();
+    pixelsMinor4.begin();
 
     // every sec interrupt
     noInterrupts(); //отключить глобавльные прерывания
