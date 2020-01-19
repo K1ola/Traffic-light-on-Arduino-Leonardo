@@ -8,7 +8,7 @@
 #define PIN5            5
 #define PIN4            4
 #define PIN2            2
-// How many NeoPixels are attached to the Arduino?
+// How many NeoPixels are attached to the Arduino
 #define NUMPIXELS      4
 
 //#define DEBUG
@@ -28,23 +28,23 @@ const int pinUART = 4;
 
 uint32_t sysTime = 0;
 
-enum Joystick
+enum Joystick   //структура для определения текущей позиции джойстика 
 {
     joyNone = 0, joyLeft, joyRight, joyUp, joyDown, joyEnter
 };    
 
-enum Section
+enum Section   //структура для определения сигналов светофора 
 {
     red = 0, yellow = 1, green = 2, left = 3, right = 4
 };
 
-struct TrafficLightState
+struct TrafficLightState   //структура для определения одного светофора
 {       
     bool section[5];
     uint8_t count;
 };
 
-struct ProgrammElem
+struct ProgrammElem   //структура для определения конфигурации светофоров
 {
     int currTime;
     TrafficLightState major, minor;
@@ -81,30 +81,29 @@ const ProgrammElem *currentProgramm = programmDefault;
 #endif
 int currentProgrammSize = countof(programmDebug);
 
-Joystick GetJoystick()
+Joystick GetJoystick()      //функция для определения позиции джойстика 
 {   
-    static Joystick prevState = joyNone;
-    Joystick state = joyNone;
-    int analogValue = analogRead(pinJoystick);
+    static Joystick prevState = joyNone;    //инициализация предыдущего состояния джойстика 
+    Joystick state = joyNone;   //начальная инициализация джойстика
+    int analogValue = analogRead(pinJoystick);  //считывание аналогового значения 
     if (analogValue < 100)      state = joyRight;
     else if (analogValue < 300) state = joyUp;
     else if (analogValue < 500) state = joyLeft;
     else if (analogValue < 700) state = joyEnter;
     else if (analogValue < 900) state = joyDown;
-    if (state == prevState) return joyNone;
-    prevState = state;
+    if (state == prevState) return joyNone; //установка предыдущего состояния 
+    prevState = state; //установка текущего состояния
     return state;
 }
 
 void TurnOnLEDs(int angle, int light_item)
 {
-     if (angle == 90 || angle == 270)   //minor
-            switch (light_item)
+     if (angle == 90 || angle == 270)   //светофоры второстепенной дороги
+            switch (light_item) //какой сигнал светофора нужно зажечь 
             {
                case 0:
                    pixelsMinor6.setPixelColor(2, pixelsMinor6.Color(0,150,0)); // Назначаем цвет "Красный" 
                    pixelsMinor4.setPixelColor(2, pixelsMinor4.Color(0,150,0)); // Назначаем цвет "Красный"
-//                   *minorRed = true; 
                    break;
                case 1:
                    pixelsMinor6.setPixelColor(1, pixelsMinor6.Color(255, 255, 0)); // Назначаем цвет "Желтый"
@@ -123,8 +122,8 @@ void TurnOnLEDs(int angle, int light_item)
                    pixelsMinor4.setPixelColor(0, pixelsMinor4.Color(255,0,0)); // Назначаем цвет "Желтый"
                    break;
             }   
-    if (angle == 0 || angle == 180)     //major
-            switch (light_item)
+    if (angle == 0 || angle == 180)     //светофоры главной дороги
+            switch (light_item) //какой сигнал светофора нужно зажечь
             {
                case 0:
                    pixelsMajor12.setPixelColor(0, pixelsMajor12.Color(0,150,0)); // Назначаем цвет "Красный" 
@@ -154,8 +153,8 @@ void TurnOnLEDs(int angle, int light_item)
 
 void TurnOffLEDs(int angle, int light_item) 
 {
-    if (angle == 90 || angle == 270)   //minor
-            switch (light_item)
+    if (angle == 90 || angle == 270)     //светофоры второстепенной дороги
+            switch (light_item) //какой сигнал светофора нужно зажечь
             {
                case 0:
                    pixelsMinor6.setPixelColor(2, pixelsMinor6.Color(0,0,0)); // Назначаем цвет "Черный" 
@@ -178,8 +177,8 @@ void TurnOffLEDs(int angle, int light_item)
                    pixelsMinor4.setPixelColor(0, pixelsMinor4.Color(0,0,0));
                    break;
             }   
-    if (angle == 0 || angle == 180)     //major
-            switch (light_item)
+    if (angle == 0 || angle == 180)    //светофоры главной дороги
+            switch (light_item)     //какой сигнал светофора нужно зажечь
             {
                case 0:
                    pixelsMajor12.setPixelColor(0, pixelsMajor12.Color(0,0,0)); // Назначаем цвет "Черный" 
@@ -204,7 +203,7 @@ void TurnOffLEDs(int angle, int light_item)
             }     
 }
 
-void TurnOnPedestrian(bool flag)
+void TurnOnPedestrian(bool flag)    //функция для установки нужного сигнала для пешеходных светофоров
 {
     if (flag)
     {
@@ -218,7 +217,7 @@ void TurnOnPedestrian(bool flag)
     }
 }
 
-void ShowLEDs()
+void ShowLEDs()     //функция для включения светодиодных лент в соответствии с заданными значениями
 {
     pixelsMajor12.show();
     pixelsMajor5.show(); 
@@ -227,9 +226,9 @@ void ShowLEDs()
     pixelsPedestrian2.show(); 
 }
 
-void DrawCrosswalk(uint8_t x, uint8_t y, int angle, uint8_t size)
+void DrawCrosswalk(uint8_t x, uint8_t y, int angle, uint8_t size)   //функция для отрисовки пешеходных дорог
 {
-    uint8_t step = angle == 0 ? 5 : 4;
+    uint8_t step = angle == 0 ? 5 : 4;  //в зависимости от значения угла будет отриосван пешеходный переход для главной или второстепенной дорог
     for (uint8_t s = 0; s < size; s += step)
     {
         if (angle == 0) 
@@ -239,11 +238,11 @@ void DrawCrosswalk(uint8_t x, uint8_t y, int angle, uint8_t size)
     }
 }
 
-void DrawTrafficLight(uint8_t x, uint8_t y, int angle, TrafficLightState *state)
+void DrawTrafficLight(uint8_t x, uint8_t y, int angle, TrafficLightState *state)    //функция для отрисовки светофоров
 {
     const uint8_t radius = 3;
     uint8_t sx[5], sy[5];
-    switch (angle)
+    switch (angle)  //в зависимоти от угла задаются координаты светофоров главной и второстепенной дорог
     {
         case 0:
             sx[0] = sx[1] = sx[2] = x + 3*radius;
@@ -278,25 +277,23 @@ void DrawTrafficLight(uint8_t x, uint8_t y, int angle, TrafficLightState *state)
             sy[4] = y - 5*radius;
             break;
     }
-    for (uint8_t i = 0; i < state->count; i++)
+    for (uint8_t i = 0; i < state->count; i++)  //цикл по всем состояниям заданной конфигурации светофоров
     {
-        if (state->section[i]) 
+        if (state->section[i])  //если текущая секция текущего светофора включена 
         {
-            //lights are on
-            u8g.drawDisc(sx[i], sy[i], radius);
-            TurnOnLEDs(angle, i);
+            u8g.drawDisc(sx[i], sy[i], radius); //отрисовать закрашенную секцию светофора
+            TurnOnLEDs(angle, i);   //включить данную секцию светофора
         }
-        else 
+        else  //если текущая секция текущего светофора не включена 
         {
-            //lights are off
-            u8g.drawCircle(sx[i], sy[i], radius);
-            TurnOffLEDs(angle, i);
+            u8g.drawCircle(sx[i], sy[i], radius); //отрисовать незакрашенную секцию светофора
+            TurnOffLEDs(angle, i);   //выключить данную секцию светофора
         }
     }  
     ShowLEDs();   
 }
 
-void GetCurrentState(TrafficLightState *major, TrafficLightState *minor) 
+void GetCurrentState(TrafficLightState *major, TrafficLightState *minor)    //функция определения текущего состояния светофоров 
 {
     int maxTime = currentProgramm[currentProgrammSize-1].currTime;  //время последней программы в массиве
     int localSysTime = sysTime % maxTime + 1;   //вычислить из системного общего времени, какая часть прошла для светофоров. П
@@ -358,7 +355,7 @@ void DrawCrossroad()
     uy = 32 - minorRoadWidth/2;
     dy = uy + minorRoadWidth;
 
-    //draw road lines
+    //отрисовка очертаний дорог
     u8g.drawLine(lx, 0, lx, uy);
     u8g.drawLine(rx, 0, rx, uy);
     u8g.drawLine(lx, dy, lx, 63);
@@ -368,6 +365,7 @@ void DrawCrossroad()
     u8g.drawLine(rx, uy, 127, uy);
     u8g.drawLine(rx, dy, 127, dy);
 
+    //отрисовка пешеходных переходов для главной и второстепенной дорог
     DrawCrosswalk(lx+4, uy-14, 0, majorRoadWidth-8);
     DrawCrosswalk(lx+4, dy+4,  0, majorRoadWidth-8);
     DrawCrosswalk(lx-16, uy+3, 90, minorRoadWidth-6);
@@ -375,7 +373,8 @@ void DrawCrossroad()
 
     TrafficLightState major, minor;
     GetCurrentState(&major, &minor);
-    
+
+    //отрисовка светофров для главной и второстепенной дорог
     DrawTrafficLight(rx+4, dy+3, 0, &major);
     DrawTrafficLight(lx-4, uy-3, 180, &major);
     DrawTrafficLight(lx-4, dy, 90, &minor);
@@ -392,15 +391,21 @@ void RedrawScreen()
     while (u8g.nextPage());
 }
 
-bool LoadFromPC()
+//Программа для демонстрации передачи по USART
+//14 00 00 00 01 00 00 04 01 00 00 00 00 03
+//28 00 01 00 00 01 00 04 01 00 00 00 00 03
+//37 00 01 00 00 00 00 04 00 00 01 00 00 03
+//41 00 01 00 00 00 00 04 01 00 00 00 00 03 
+
+bool LoadFromPC()   //функция для приема данных с ПЭВМ
 {    
-    const uint32_t startTimeout = 1000; 
-    // one line for traffic - 0A 00 00 00 01 00 00 04 01 00 00 00 00 03       
-    Serial1.begin(9600);
-    while (!Serial1); 
-    uint32_t timeout = startTimeout; 
-    ProgrammElem programmExternalBackup[4];
-    memcpy(programmExternalBackup, programmExternal, sizeof(programmExternal));
+    const uint32_t startTimeout = 1000; //инициализация максимального времени передачи          
+    Serial1.begin(9600);    //инициализируем последовательный интерфейс и ожидаем открытия порта
+    while (!Serial1);   // ожидаем подключения последовательного порта  
+    uint32_t timeout = startTimeout;    //инициализация текущего времени передачи 
+    ProgrammElem programmExternalBackup[4]; 
+    memcpy(programmExternalBackup, programmExternal, sizeof(programmExternal)); //сохранение прошлой программы на случай ошибки передачи
+    //инициализация структур для хранения полученных данных 
     uint8_t* pointerBuffer = (uint8_t*)programmExternal; 
     uint8_t receivedBytes = 0;
     char strTimer[24] = {0};
@@ -408,20 +413,22 @@ bool LoadFromPC()
     char strBytesCount[24] = {0};
     sprintf(strLastByte, "Last received: 0");
     sprintf(strBytesCount, "All received: 0");
-    while (receivedBytes < sizeof(programmExternal))
+    while (receivedBytes < sizeof(programmExternal))    //пока кол-во принятых байт не равно размеру структуры конфигурации 
     {
-        if (--timeout == 0) 
+        if (--timeout == 0) //если время передачи истекло - сообщить об ошибке 
         {
-            Serial1.end();
-            memcpy(programmExternal, programmExternalBackup, sizeof(programmExternal));
-        
+            Serial1.end();  //завершить передачу
+            memcpy(programmExternal, programmExternalBackup, sizeof(programmExternal)); //восстановление прошлой конфигурации программы
+
+            //вывод сообщения об ошибке
             u8g.firstPage();  
             do 
             {
                 u8g.drawStr(40, 28, "Timeout!");
             } 
             while (u8g.nextPage());
-            
+
+            //подача звукового сигнала 
             #ifndef DEBUG
             tone(pinBuzzer, 1000);
             for (volatile uint32_t t=0; t<200000; t++);    
@@ -431,6 +438,7 @@ bool LoadFromPC()
             return false;
         }
         uint8_t lastByte = 0; 
+        // чтение посимвольно и сохранение в буфер
         if (Serial1.available() > 0) 
         {
             lastByte = *pointerBuffer++ = Serial1.read();
@@ -441,6 +449,7 @@ bool LoadFromPC()
             sprintf(strBytesCount, "All bytes: %d", receivedBytes);
         }
 
+        // отображение оставшегося для передачи времени и кол-во принятых байт
         sprintf(strTimer, "Timer: %u", timeout);
         u8g.firstPage();  
         do 
@@ -457,6 +466,7 @@ bool LoadFromPC()
 
 void DrawMenu()
 {
+    // инициализация вариантов выбора меню
     const char* menuItems[] = 
     {
         "Default programm",
@@ -465,10 +475,11 @@ void DrawMenu()
         "Exit",
     };
 
-    uint8_t selectedItem = 0;
+    uint8_t selectedItem = 0;   //номер выбранного элемента
     
     while (1) 
     {
+        // отрисовка вариантов меню
         u8g.firstPage();  
         do 
         {
@@ -521,13 +532,13 @@ void DrawMenu()
 
 void setup(void) 
 {
-    pinMode(pinBacklight, OUTPUT);
-    digitalWrite(pinBacklight, HIGH);
-    pinMode(pinBuzzer, OUTPUT);
-    pinMode(pinUART,   OUTPUT);
-    digitalWrite(pinUART, LOW); 
-    //for debug output
-    Serial.begin(9600); 
+    pinMode(pinBacklight, OUTPUT);  //инициализая подстветки дисплея
+    digitalWrite(pinBacklight, HIGH);   //включение подсветки дисплея
+    pinMode(pinBuzzer, OUTPUT); //инициализая зуммера
+    pinMode(pinUART,   OUTPUT); //инициализация порта направления передачи данных по USART
+    digitalWrite(pinUART, LOW); //указание направление передачи данных по USART 
+    Serial.begin(9600); //для отладочного вывода в виртуальный монитор 
+    //настройка отображения на дисплее
     u8g.setRot180();
     u8g.setColorIndex(1);
     u8g.setContrast(0);
@@ -535,13 +546,14 @@ void setup(void)
     u8g.setFontRefHeightText();
     u8g.setFontPosTop();
 
+    //инициализация светодиодных лент
     pixelsMajor12.begin();
     pixelsMajor5.begin();    
     pixelsMinor6.begin();
     pixelsMinor4.begin();
     pixelsPedestrian2.begin(); 
 
-    // every sec interrupt
+    //каждую секунду - прерывание 
     noInterrupts(); //отключить глобавльные прерывания
     TCCR1A = 0; //установить регистры в 0
     TCCR1B = 0;
@@ -555,33 +567,20 @@ void setup(void)
 
 ISR(TIMER1_COMPA_vect)
 {
-    sysTime++;
-    RedrawScreen();
+    sysTime++;  //увеличить на единицу системный счетчик
+    RedrawScreen(); //перерисовать экран дисплея 
 }
 
 void loop(void) 
 {           
-    bool backlight = true;
-    int delayval = 500;
     while (true)
     {
-        if (GetJoystick() == joyEnter)
+        if (GetJoystick() == joyEnter)  //если был нажат джойстик
         {       
             TIMSK1 &= ~(1 << OCIE1A); // выключить прерывание по совпадению таймера
-            DrawMenu();
-            sysTime = 0;            
+            DrawMenu(); // отрисовка меню
+            sysTime = 0; // сброс системного счетчика            
             TIMSK1 |= (1 << OCIE1A); // включить прерывание по совпадению таймера
-            //backlight = !backlight; 
-            //digitalWrite(pinBacklight, backlight);
-        }
-
-
-        // pixels.Color takes RGB values, from 0,0,0 up to 255,255,255
-//        pixels.setPixelColor(2, pixels.Color(0,150,0)); // Назначаем для первого светодиода цвет "Красный"
-//        pixels.setPixelColor(1, pixels.Color(255, 255, 0)); // Назначаем для первого светодиода цвет "Желтый"
-//        pixels.setPixelColor(0, pixels.Color(255,0,0)); // Назначаем для первого светодиода цвет "Зеленый"
-//        pixels.show(); // This sends the updated pixel color to the hardware.
-            
-          
+        }     
     }
 }
