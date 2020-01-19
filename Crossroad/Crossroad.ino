@@ -11,7 +11,7 @@
 // How many NeoPixels are attached to the Arduino?
 #define NUMPIXELS      4
 
-#define DEBUG
+//#define DEBUG
 #define countof(a) ( sizeof(a)/sizeof(a[0]) ) 
 
 Adafruit_NeoPixel pixelsMajor12 = Adafruit_NeoPixel(NUMPIXELS, PIN12, NEO_RGB + NEO_KHZ800);
@@ -149,10 +149,7 @@ void TurnOnLEDs(int angle, int light_item)
                    pixelsMajor12.setPixelColor(4, pixelsMajor12.Color(255,0,0)); // Назначаем цвет "Зеленый"
                    pixelsMajor5.setPixelColor(4, pixelsMajor5.Color(255,0,0)); // Назначаем цвет "Зеленый"
                    break;
-            }
-//    *flag = *minorRed && *majorRed; 
-    //Serial.write(minorRed ? "minorRed is true\n" : "minorRed is false\n");     
-    //Serial.write(majorRed ? "majorRed is true\n" : "majorRed is false\n");   
+            } 
 }
 
 void TurnOffLEDs(int angle, int light_item) 
